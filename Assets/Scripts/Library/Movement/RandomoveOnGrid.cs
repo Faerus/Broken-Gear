@@ -29,7 +29,7 @@ public class RandomoveOnGrid : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (this.Move.IsAtTargetPosition())
+        if (this.Move.IsAtTargetPosition()) // test
         {
             // Arrived at cell destination
             this.Cell = this.TargetCell;
