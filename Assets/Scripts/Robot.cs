@@ -14,7 +14,7 @@ public class Robot : MonoBehaviour
     [field: SerializeField]
     public ParticleSystem HealParticleSystem { get; set; }
 
-    private HealthSystem HealthSystem { get; set; }
+    public HealthSystem HealthSystem { get; private set; }
 
     public SpriteRenderer SpriteRenderer { get; set; }
     public Rigidbody2D Rigidbody { get; set; }
@@ -24,16 +24,13 @@ public class Robot : MonoBehaviour
 
     private float InvincibleUntil { get; set; }
 
-    public Color TeamColor
-    {
-        get { return this.SpriteRenderer.color; }
-        set { this.SpriteRenderer.color = value; }
-    }
+    public Color TeamColor { get; private set; }
 
     // Start is called before the first frame update
     void Start()
     {
         this.SpriteRenderer = this.GetComponentInChildren<SpriteRenderer>();
+        this.TeamColor = this.SpriteRenderer.color;
         this.Rigidbody = this.GetComponentInChildren<Rigidbody2D>();
         this.RandoMove = this.GetComponent<RandomoveOnGrid>();
         this.Move = this.GetComponent<IMovePosition>();
@@ -110,7 +107,7 @@ public class Robot : MonoBehaviour
         if(UnityEngine.Random.Range(0, 2) < 1)
             this.RandoMove.TurnBack();
 
-        this.InvincibleUntil = Time.time + .25f;
+        this.InvincibleUntil = Time.time + .2f;
     }
 
     public bool IsDead()
@@ -127,6 +124,13 @@ public class Robot : MonoBehaviour
 
         this.Animator.SetBool("isDead", true);
         GameManager.RegisterRobotDead(this.TeamColor);
+        GameManager.AddGearsToOtherTeam(this.TeamColor, GameManager.PRICE_PER_ROBOT_KILLED);
+
         Destroy(this.gameObject, 20);
+    }
+
+    private void OnDestroy()
+    {
+        GameManager.Robots.Remove(this);
     }
 }

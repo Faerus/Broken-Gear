@@ -23,11 +23,7 @@ public class Turret : MonoBehaviour
     private HealthSystem HealthSystem { get; set; }
     private BoxCollider2D Collider { get; set; }
     public SpriteRenderer SpriteRenderer { get; set; }
-    public Color TeamColor
-    {
-        get { return this.SpriteRenderer.color; }
-        set { this.SpriteRenderer.color = value; }
-    }
+    public Color TeamColor { get; set; }
 
     [field: SerializeField]
     public ParticleSystem DeadParticleSystem { get; set; }
@@ -45,12 +41,18 @@ public class Turret : MonoBehaviour
         //this.ArrowSpeed = 5f;
 
         this.SpriteRenderer = this.GetComponentInChildren<SpriteRenderer>();
+        
         this.Collider = this.GetComponent<BoxCollider2D>();
         if (HealthSystem.TryGetHealthSystem(this.gameObject, out HealthSystem healthSystem))
         {
             this.HealthSystem = healthSystem;
             this.HealthSystem.OnDead += this.HealthSystem_OnDead;
         }
+    }
+
+    private void Start()
+    {
+        this.TeamColor = this.SpriteRenderer.color;
     }
 
     // Update is called once per frame
@@ -69,6 +71,8 @@ public class Turret : MonoBehaviour
                 arrow.Target = enemy;
                 arrow.Power = this.Power;
                 arrow.Speed = this.ArrowSpeed;
+
+                this.SpriteRenderer.flipX = this.ShootPosition.x < enemy.transform.position.x;
             }
         }
     }
@@ -77,6 +81,7 @@ public class Turret : MonoBehaviour
     {
         this.Collider.enabled = false;
         this.DeadParticleSystem.Play();
+        GameManager.AddGearsToOtherTeam(this.TeamColor, GameManager.PRICE_PER_BUILDING_KILLED);
         Destroy(this.gameObject, 1);
     }
 

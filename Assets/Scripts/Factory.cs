@@ -11,10 +11,13 @@ public class Factory : MonoBehaviour
     [field: SerializeField]
     public ParticleSystem DeadParticleSystem { get; set; }
 
+    public Color TeamColor { get; set; }
+
     // Start is called before the first frame update
     void Start()
     {
         this.Collider = this.GetComponent<BoxCollider2D>();
+        this.TeamColor = this.GetComponent<SpriteRenderer>().color;
         if (HealthSystem.TryGetHealthSystem(this.gameObject, out HealthSystem healthSystem))
         {
             this.HealthSystem = healthSystem;
@@ -32,6 +35,7 @@ public class Factory : MonoBehaviour
     {
         this.Collider.enabled = false;
         this.DeadParticleSystem.Play();
+        GameManager.AddGearsToOtherTeam(this.TeamColor, GameManager.PRICE_PER_BUILDING_KILLED);
         Destroy(this.gameObject, 1);
     }
 }

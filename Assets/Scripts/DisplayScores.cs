@@ -32,6 +32,7 @@ public class DisplayScores : MonoBehaviour
     {
         int created = GameManager.RobotCreated.ContainsKey(teamColor) ? GameManager.RobotCreated[teamColor] : 0;
         int dead = GameManager.RobotDead.ContainsKey(teamColor) ? GameManager.RobotDead[teamColor] : 0;
-        textMesh.text = $"{created}\r\n{dead}\r\n{created - dead}";
+        int gears = GameManager.Gears.ContainsKey(teamColor) ? GameManager.Gears[teamColor] : 0;
+        textMesh.text = $"{created}\r\n{created - dead}\r\n{gears}";
     }
 }

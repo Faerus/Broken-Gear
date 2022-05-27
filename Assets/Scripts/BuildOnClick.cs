@@ -19,9 +19,6 @@ public class BuildOnClick : MonoBehaviour
     [field: SerializeField]
     public Vector3 TurretOriginPosition { get; set; }
 
-    [field: SerializeField]
-    public Color Team2Color { get; set; }
-
     // Start is called before the first frame update
     void Start()
     {
@@ -39,32 +36,49 @@ public class BuildOnClick : MonoBehaviour
                 Cell cell = GameManager.Grid[x, y];
                 if (cell.Building == null )
                 {
+                    Color teamColor = cell.X > 3 ? GameManager.ColorTeam2 : GameManager.ColorTeam1;
                     GameObject prefab = null;
                     Vector3 originPosition = mousePos;
                     originPosition.z = 0;
                     switch (GameManager.SelectedBuilding)
                     {
                         case Building.Drill:
+                            // Spend gears
+                            if (!GameManager.RemoveGears(teamColor, GameManager.PRICE_DRILL))
+                            {
+                                return;
+                            }
+
                             prefab = this.DrillPrefab;
                             originPosition += this.DrillOriginPosition;
                             break;
 
                         case Building.Factory:
+                            // Spend gears
+                            if (!GameManager.RemoveGears(teamColor, GameManager.PRICE_FACTORY))
+                            {
+                                return;
+                            }
                             prefab = this.FactoryPrefab;
                             originPosition += this.FactoryOriginPosition;
                             break;
 
                         case Building.Turret:
+                            // Spend gears
+                            if (!GameManager.RemoveGears(teamColor, GameManager.PRICE_TURRET))
+                            {
+                                return;
+                            }
                             prefab = this.TurretPrefab;
                             originPosition += this.TurretOriginPosition;
                             break;
                     }
 
                     cell.Building = Instantiate(prefab, originPosition, Quaternion.identity);
+                    SpriteRenderer spriteRenderer = cell.Building.GetComponent<SpriteRenderer>();
+                    spriteRenderer.color = teamColor;
                     if (cell.X > 3)
                     {
-                        SpriteRenderer spriteRenderer = cell.Building.GetComponent<SpriteRenderer>();
-                        spriteRenderer.color = this.Team2Color;
                         spriteRenderer.flipX = false;
                     }
 

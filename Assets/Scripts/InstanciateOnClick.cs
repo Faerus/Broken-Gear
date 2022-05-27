@@ -16,12 +16,15 @@ public class InstanciateOnClick : MonoBehaviour, IPointerClickHandler
 
     public Color TeamColor { get; set; }
 
+    public Animator Animator { get; set; }
+
     // Start is called before the first frame update
     void Start()
     {
         this.TeamColor = this.GetComponent<SpriteRenderer>().color;
+        this.Animator = this.GetComponent<Animator>();
 
-        InvokeRepeating("GenerateItem", 1, 3);
+        InvokeRepeating("GenerateItem", 2.5f, 3);
     }
 
     // Update is called once per frame
@@ -34,8 +37,13 @@ public class InstanciateOnClick : MonoBehaviour, IPointerClickHandler
     {
         // Check max allowed
         int currentRobot = GameManager.GetRobotCount(this.TeamColor);
-        int maxRobot = 20;
-        if (currentRobot >= maxRobot)
+        if (currentRobot >= GameManager.MAX_ROBOT_PER_TEAM)
+        {
+            return;
+        }
+
+        // Spend gears
+        if(!GameManager.RemoveGears(this.TeamColor, GameManager.PRICE_ROBOT))
         {
             return;
         }
@@ -71,6 +79,7 @@ public class InstanciateOnClick : MonoBehaviour, IPointerClickHandler
         }
 
         GameManager.RegisterRobotCreated(this.TeamColor);
+        this.Animator.Play("Build", -1, 0f);
     }
 
     public void OnPointerClick(PointerEventData eventData)

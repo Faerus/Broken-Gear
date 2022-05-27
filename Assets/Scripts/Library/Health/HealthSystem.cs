@@ -93,6 +93,11 @@ public class HealthSystem
         this.Health -= amount;
     }
 
+    public void Kill()
+    {
+        this.Damage(this.Health);
+    }
+
     public void Heal(float amount)
     {
         this.Health += amount;
