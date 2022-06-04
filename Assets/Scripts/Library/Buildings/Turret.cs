@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Turret : MonoBehaviour
+public class Turret : Building
 {
+    public override BuildingTypes BuildingType { get { return BuildingTypes.Turret; } }
+
     private Vector3 ShootPosition { get; set; }
 
     [field: SerializeField]
@@ -20,10 +22,8 @@ public class Turret : MonoBehaviour
     [field: SerializeField]
     public float ArrowSpeed { get; set; }
 
-    private HealthSystem HealthSystem { get; set; }
     private BoxCollider2D Collider { get; set; }
     public SpriteRenderer SpriteRenderer { get; set; }
-    public Color TeamColor { get; set; }
 
     [field: SerializeField]
     public ParticleSystem DeadParticleSystem { get; set; }
@@ -32,38 +32,34 @@ public class Turret : MonoBehaviour
     private GameObject Arrow { get; set; }
 
     // Start is called before the first frame update
-    void Awake()
+    protected override void Awake()
     {
-        this.ShootPosition = transform.Find("ShootPosition").position;
+        base.Awake();
         //this.Range = 5;
         //this.Power = 15;
         //this.ShootDelay = .4f;
         //this.ArrowSpeed = 5f;
 
+        this.ShootPosition = transform.Find("ShootPosition").position;
         this.SpriteRenderer = this.GetComponentInChildren<SpriteRenderer>();
-        
         this.Collider = this.GetComponent<BoxCollider2D>();
-        if (HealthSystem.TryGetHealthSystem(this.gameObject, out HealthSystem healthSystem))
-        {
-            this.HealthSystem = healthSystem;
-            this.HealthSystem.OnDead += this.HealthSystem_OnDead;
-        }
     }
-
-    private void Start()
+    protected override void Start()
     {
-        this.TeamColor = this.SpriteRenderer.color;
+        base.Start();
+
+        this.HealthSystem.OnDead += this.HealthSystem_OnDead;
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         this.ShootDelayCurrent -= Time.deltaTime;
         if (this.ShootDelayCurrent <= 0f)
         {
             this.ShootDelayCurrent = this.ShootDelay;
 
-            Robot enemy = GameManager.GetClosestEnemy(transform.position, this.Range, this.TeamColor);
+            Robot enemy = GameManager.GetClosestEnemy<Robot>(transform.position, this.Range, this.TeamColor);
             if (enemy != null)
             {
                 GameObject arrowGameObject = Instantiate(this.Arrow, this.ShootPosition, Quaternion.identity);
@@ -93,8 +89,9 @@ public class Turret : MonoBehaviour
     {
         TurretOverlay.HideStatic();
     }
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         TurretOverlay.HideStatic();
     }
 }

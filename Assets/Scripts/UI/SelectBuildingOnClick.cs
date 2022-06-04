@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class SelectBuildingOnClick : MonoBehaviour
 {
     [field: SerializeField]
-    public Building BuildingToSelect { get; set; }
+    public BuildingTypes BuildingToSelect { get; set; }
 
     // Start is called before the first frame update
     void Start()

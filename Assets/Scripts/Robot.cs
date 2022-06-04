@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Robot : MonoBehaviour
+public class Robot : Actor
 {
     [field: SerializeField]
     public int Power { get; set; }
@@ -14,48 +14,30 @@ public class Robot : MonoBehaviour
     [field: SerializeField]
     public ParticleSystem HealParticleSystem { get; set; }
 
-    public HealthSystem HealthSystem { get; private set; }
-
     public SpriteRenderer SpriteRenderer { get; set; }
     public Rigidbody2D Rigidbody { get; set; }
     public Animator Animator { get; set; }
     public RandomoveOnGrid RandoMove { get; set; }
-    private IMovePosition Move { get; set; }
 
     private float InvincibleUntil { get; set; }
-
-    public Color TeamColor { get; private set; }
+    private float DelaySinceLastCollision { get; set; }
 
     // Start is called before the first frame update
-    void Start()
+    protected override void Start()
     {
+        base.Start();
+
         this.SpriteRenderer = this.GetComponentInChildren<SpriteRenderer>();
-        this.TeamColor = this.SpriteRenderer.color;
         this.Rigidbody = this.GetComponentInChildren<Rigidbody2D>();
         this.RandoMove = this.GetComponent<RandomoveOnGrid>();
-        this.Move = this.GetComponent<IMovePosition>();
         this.Animator = this.GetComponentInChildren<Animator>();
         this.Animator.Play("Walk");
 
-        if (HealthSystem.TryGetHealthSystem(this.gameObject, out HealthSystem healthSystem))
-        {
-            this.HealthSystem = healthSystem;
-            this.HealthSystem.OnDead += this.HealthSystem_OnDead;
-        }
-
-        GameManager.Robots.Add(this);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
+        this.HealthSystem.OnDead += this.HealthSystem_OnDead;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (this.SpriteRenderer == null) // Sometimes occurs during gameobject destroy
-            return;
-
         if (collision.TryGetComponent<Robot>(out Robot robot))
         {
             if (robot.TeamColor == this.TeamColor)
@@ -76,6 +58,18 @@ public class Robot : MonoBehaviour
             this.Animator.Play("Attack");
             healthSystemComponent.HealthSystem.Damage(this.Power);
             //this.DamageParticleSystem.Play();
+        }
+
+        this.DelaySinceLastCollision = 0;
+    }
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        // Nothing to do if invincible
+        this.DelaySinceLastCollision += Time.deltaTime;
+        if (this.DelaySinceLastCollision > 3)
+        {
+            this.OnTriggerEnter2D(collision);
         }
     }
 
@@ -118,19 +112,13 @@ public class Robot : MonoBehaviour
     private void HealthSystem_OnDead(object sender, EventArgs e)
     {
         this.Rigidbody.simulated = false;
-        this.Move.TargetPosition = transform.position;
-        this.RandoMove.enabled = false;
         this.SpriteRenderer.sortingOrder = -1;
+        this.RandoMove.Disable();
 
         this.Animator.SetBool("isDead", true);
         GameManager.RegisterRobotDead(this.TeamColor);
         GameManager.AddGearsToOtherTeam(this.TeamColor, GameManager.PRICE_PER_ROBOT_KILLED);
 
         Destroy(this.gameObject, 20);
-    }
-
-    private void OnDestroy()
-    {
-        GameManager.Robots.Remove(this);
     }
 }

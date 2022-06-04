@@ -4976,7 +4976,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <DeadParticleSystem>k__BackingField: {fileID: 5887024330044440369}
   <Frequency>k__BackingField: 1
-  <Gears>k__BackingField: 3
+  <Gears>k__BackingField: 1
 --- !u!114 &8005010672603411879
 MonoBehaviour:
   m_ObjectHideFlags: 0

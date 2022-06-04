@@ -60,12 +60,23 @@ public class Cell
         return this.Grid.GetWorldPosition(this.X, this.Y);
     }
 
-    public Vector3 GetRandomWorldPosition()
+    public Vector3 GetCenterWorldPosition()
     {
-        float halfCellWidth = this.Grid.CellWidth * .2f;
-        float halfCellHeight = this.Grid.CellHeight * .2f;
-
         Vector3 centerPosition = this.GetWorldPosition();
+        Vector3 cellCenterPosition = new Vector3(
+            this.Grid.CellWidth * .5f,
+            this.Grid.CellHeight * .5f,
+            0
+        );
+        return centerPosition + cellCenterPosition;
+    }
+
+    public Vector3 GetRandomWorldPosition(float variance = .2f)
+    {
+        float halfCellWidth = this.Grid.CellWidth * variance;
+        float halfCellHeight = this.Grid.CellHeight * variance;
+
+        Vector3 centerPosition = this.GetCenterWorldPosition();
         Vector3 randomPosition = new Vector3(
             Random.Range(-halfCellWidth, halfCellWidth),
             Random.Range(-halfCellHeight, halfCellHeight),

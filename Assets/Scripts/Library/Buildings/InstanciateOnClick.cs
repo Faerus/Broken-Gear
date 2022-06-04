@@ -49,6 +49,7 @@ public class InstanciateOnClick : MonoBehaviour, IPointerClickHandler
         }
 
         GameObject item = Instantiate(this.ItemToInstanciate, transform.position, Quaternion.identity);
+        item.name = $"{(this.TeamColor == Color.white ? "White" : "Red")} {GameManager.TotalRobotCreated + 1}";
         float speedFactor = Random.Range(this.SpeedVariance * -1, this.SpeedVariance);
         float scaleFactor = Random.Range(this.ScaleVariance * -1, this.ScaleVariance);
 
@@ -76,6 +77,15 @@ public class InstanciateOnClick : MonoBehaviour, IPointerClickHandler
         if (robot != null)
         {
             robot.Power += (int)(robot.Power * scaleFactor);
+        }
+
+        RobotAI robotAi = item.GetComponent<RobotAI>();
+        if (robotAi != null)// && this.TeamColor == Color.white)
+        {
+            robotAi.Strategy = (RobotAI.Strategies)(currentRobot % 3 + 1);
+            item.name += " (" + robotAi.Strategy + ")";
+
+            robotAi.enabled = false; // Disabled for now
         }
 
         GameManager.RegisterRobotCreated(this.TeamColor);

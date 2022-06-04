@@ -3,32 +3,39 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Factory : MonoBehaviour
+public class Drill : Building
 {
-    private HealthSystem HealthSystem { get; set; }
+    public override BuildingTypes BuildingType { get { return BuildingTypes.Drill; } }
+
     private BoxCollider2D Collider { get; set; }
 
     [field: SerializeField]
     public ParticleSystem DeadParticleSystem { get; set; }
 
-    public Color TeamColor { get; set; }
+    [field: SerializeField]
+    public float Frequency { get; set; }
 
-    // Start is called before the first frame update
-    void Start()
+    [field: SerializeField]
+    public int Gears { get; set; }
+
+    protected override void Awake()
     {
+        base.Awake();
+
         this.Collider = this.GetComponent<BoxCollider2D>();
-        this.TeamColor = this.GetComponent<SpriteRenderer>().color;
-        if (HealthSystem.TryGetHealthSystem(this.gameObject, out HealthSystem healthSystem))
-        {
-            this.HealthSystem = healthSystem;
-            this.HealthSystem.OnDead += this.HealthSystem_OnDead;
-        }
+        InvokeRepeating("GenerateGears", 1, this.Frequency);
+        
+    }
+    protected override void Start()
+    {
+        base.Start();
+
+        this.HealthSystem.OnDead += this.HealthSystem_OnDead;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void GenerateGears()
     {
-        
+        GameManager.AddGears(this.TeamColor, this.Gears);
     }
 
     private void HealthSystem_OnDead(object sender, EventArgs e)

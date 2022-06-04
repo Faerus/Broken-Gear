@@ -6,7 +6,9 @@ public class MovePositionDirect : MonoBehaviour, IMovePosition
 {
     [field: SerializeField]
     public float ReachTargetDistance { get; set; }
+
     public Vector3 TargetPosition { get; set; }
+
     private IMoveVelocity MoveVelocity { get; set; }
 
     public bool IsAtTargetPosition()

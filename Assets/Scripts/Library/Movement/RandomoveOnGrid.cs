@@ -6,20 +6,20 @@ using UnityEngine;
 
 public class RandomoveOnGrid : MonoBehaviour
 {
-    [field: SerializeField]
-    public Vector3 OriginPosition { get; set; }
-
     private Cell Cell { get; set; }
     private Cell TargetCell { get; set; }
     private Vector2 Direction { get; set; }
 
     private SpriteRenderer SpriteRenderer { get; set; }
-    private IMovePosition Move { get; set; }
+    public IMovePosition Move { get; private set; }
+
+    public Animator Animator { get; set; }
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         this.SpriteRenderer = this.GetComponentInChildren<SpriteRenderer>();
+        this.Animator = this.GetComponentInChildren<Animator>();
         this.Move = this.GetComponent<IMovePosition>();
 
         this.Cell = GameManager.Grid.GetNearest(transform.position);
@@ -42,18 +42,8 @@ public class RandomoveOnGrid : MonoBehaviour
     private void MoveToNextTargetCell()
     {
         // Select next target
-        this.Direction = this.GetRandomDirection(this.Cell, this.Direction);
-        this.TargetCell = this.Cell.UpRight((int)this.Direction.x, (int)this.Direction.y);
-
-        // Move to target
-        this.Move.TargetPosition = this.TargetCell.GetRandomWorldPosition() + this.OriginPosition;
-        //Debug.Log($"[{this.name}] Moving from {this.Cell} to {this.TargetCell}");
-
-        // Look to right direction
-        if (this.Direction.x != 0)
-        {
-            this.SpriteRenderer.flipX = this.Direction.x < 0;
-        }
+        Vector2 direction = this.GetRandomDirection(this.Cell, this.Direction);
+        this.MoveToDirection(direction);
     }
 
     private Vector2 GetRandomDirection(Cell startingCell, Vector2 previousDirection)
@@ -81,13 +71,21 @@ public class RandomoveOnGrid : MonoBehaviour
         return choices.OrderBy(x => Guid.NewGuid()).First();
     }
 
-    public void TurnBack()
+    private void MoveToDirection(Vector2 direction)
     {
-        this.TargetCell = this.Cell;
-        this.Direction *= -1;
+        // Select next target
+        this.Direction = direction;
+        Cell targetCell = this.Cell.UpRight((int)this.Direction.x, (int)this.Direction.y);
+        this.MoveToCell(targetCell);
+    }
+
+    private void MoveToCell(Cell cell)
+    {
+        // Select next target
+        this.TargetCell = cell;
 
         // Move to target
-        this.Move.TargetPosition = this.TargetCell.GetRandomWorldPosition() + this.OriginPosition;
+        this.Move.TargetPosition = this.TargetCell.GetRandomWorldPosition();
         //Debug.Log($"[{this.name}] Moving from {this.Cell} to {this.TargetCell}");
 
         // Look to right direction
@@ -95,5 +93,33 @@ public class RandomoveOnGrid : MonoBehaviour
         {
             this.SpriteRenderer.flipX = this.Direction.x < 0;
         }
+    }
+
+    public void TurnBack()
+    {
+        if (!this.enabled)
+            return;
+
+        //this.MoveToDirection(this.Direction * -1);
+        Cell previousOrigin = this.Cell;
+        this.Cell = this.TargetCell;
+        this.MoveToCell(previousOrigin);
+    }
+
+    public void Disable()
+    {
+        this.enabled = false;
+        this.Move.TargetPosition = transform.position;
+        //this.Animator.Play("Idle");
+    }
+
+    public void Enable()
+    {
+        this.Cell = GameManager.Grid.GetNearest(transform.position);
+        this.MoveToNextTargetCell();
+
+        //this.MoveToDirection(Vector2.zero);
+        this.Animator.Play("Walk");
+        this.enabled = true;
     }
 }
