@@ -19,14 +19,11 @@ public class BuildOnClick : MonoBehaviour
     [field: SerializeField]
     public Vector3 TurretOriginPosition { get; set; }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
+    [field: SerializeField]
+    public AudioSource BuildingCreationAudio { get; set; }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         if (GameManager.SelectedBuilding != BuildingTypes.None && Input.GetMouseButtonDown(0))
         {
@@ -96,6 +93,10 @@ public class BuildOnClick : MonoBehaviour
         }
 
         cell.Building = Instantiate(prefab, originPosition, Quaternion.identity);
+        if(payGears)
+        { 
+            this.BuildingCreationAudio.Play();
+        }
 
         SpriteRenderer spriteRenderer = cell.Building.GetComponent<SpriteRenderer>();
         spriteRenderer.color = teamColor;

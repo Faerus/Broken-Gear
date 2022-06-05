@@ -1,8 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RobotAI : MonoBehaviour
+public class RobotAI : MonoBehaviour, ITargetCellProvider
 {
     public enum Strategies
     {
@@ -27,43 +28,77 @@ public class RobotAI : MonoBehaviour
         this.Robot.HealthSystem.OnDead += this.HealthSystem_OnDead;
     }
 
-    private void HealthSystem_OnDead(object sender, System.EventArgs e)
+    private void HealthSystem_OnDead(object sender, EventArgs e)
     {
         this.enabled = false;
     }
 
-    // Update is called once per frame
-    private void Update()
+    public bool GetTargetPosition(Cell currentCell, out Vector3 targetPosition, out Vector2 direction)
     {
-        switch(this.Strategy)
+        Actor targetActor = null;
+        float viewDistance = 100;
+        float minLifePercentBeforeLookingForHelp = 0.2f;
+
+        if (this.Robot.HealthSystem != null && this.Robot.HealthSystem.GetHealthPercent() < minLifePercentBeforeLookingForHelp)
         {
-            case Strategies.ClosestActor:
-                this.TargetActor = GameManager.GetClosestEnemy<Actor>(this.Robot.Position, 100, this.Robot.TeamColor);
-                break;
-
-            case Strategies.ClosestBuilding:
-                this.TargetActor = GameManager.GetClosestEnemy<Building>(this.Robot.Position, 100, this.Robot.TeamColor);
-                break;
-
-            case Strategies.WeakestActor:
-                this.TargetActor = GameManager.GetWeakestEnemy<Actor>(this.Robot.Position, 100, this.Robot.TeamColor);
-                break;
+            targetActor = GameManager.GetClosest<Robot>(this.Robot.Position, viewDistance, this.Robot.TeamColor, this.Robot);
         }
 
-        
-        if (this.TargetActor != null)
+        if (targetActor == null)
         {
-            this.Robot.RandoMove.Disable();
-            this.MoveTo(this.TargetActor);
-        }
-        else if(!this.Robot.RandoMove.enabled)
-        {
-            this.Robot.RandoMove.Enable();
-        }
-    }
+            switch (this.Strategy)
+            {
+                case Strategies.ClosestActor:
+                    targetActor = GameManager.GetClosestEnemy<Actor>(this.Robot.Position, viewDistance, this.Robot.TeamColor);
+                    break;
 
-    private void MoveTo(Actor actor)
-    {
-        this.Robot.RandoMove.Move.TargetPosition = actor.Position;
+                case Strategies.ClosestBuilding:
+                    targetActor = GameManager.GetClosestEnemy<Building>(this.Robot.Position, viewDistance, this.Robot.TeamColor);
+                    break;
+
+                case Strategies.WeakestActor:
+                    targetActor = GameManager.GetWeakestEnemy<Actor>(this.Robot.Position, viewDistance, this.Robot.TeamColor);
+                    break;
+            }
+        }
+
+        if (targetActor == null)
+        {
+            targetPosition = Vector3.zero;
+            direction = Vector2.zero;
+            return false;
+        }
+
+        Vector3 distance = targetActor.Position - transform.position;
+        float absDistanceX = Mathf.Abs(distance.x);
+        float absDistanceY = Mathf.Abs(distance.y);
+
+        // Compute direction
+        int directionX = 0, directionY = 0;
+        if (absDistanceX > absDistanceY)
+        {
+            // Move horizontally
+            directionX = (int)(distance.x / absDistanceX);
+        }
+        else
+        {
+            // Move vertically
+            directionY = (int)(distance.y / absDistanceY);
+        }
+        direction = new Vector2(directionX, directionY);
+
+        if (absDistanceX < GameManager.Grid.CellWidth || absDistanceY < GameManager.Grid.CellHeight)
+        {
+            // Focus on target if on same cell
+            targetPosition = targetActor.Position;
+        }
+        else
+        {
+            // Get to next closer cell if too far
+            targetPosition = currentCell.UpRight(directionX, directionY).GetRandomWorldPosition();
+        }
+
+        this.TargetActor = targetActor;
+        return true;
     }
 }

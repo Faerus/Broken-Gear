@@ -46,14 +46,15 @@ public static class GameManager
         SelectedBuilding = BuildingTypes.None;
     }
 
-    public static T GetClosestEnemy<T>(Vector3 position, float maxRange, Color myTeam) where T : Actor
+    public static T GetClosest<T>(Vector3 position, float maxRange, Color team, T exclusion = null) where T : Actor
     {
         var enemies = Actors
             .OfType<T>()
-            .Where(b => 
-                b.HealthSystem != null 
-                && !b.HealthSystem.IsDead() 
-                && b.TeamColor != myTeam 
+            .Where(b =>
+                b != exclusion
+                && b.HealthSystem != null
+                && !b.HealthSystem.IsDead()
+                && b.TeamColor == team
                 && Vector3.Distance(position, b.transform.position) <= maxRange
             ).ToList();
 
@@ -73,12 +74,17 @@ public static class GameManager
         return closest;
     }
 
-    public static T GetWeakestEnemy<T>(Vector3 position, float maxRange, Color myTeam) where T : Actor
+    public static T GetClosestEnemy<T>(Vector3 position, float maxRange, Color myTeam) where T : Actor
+    {
+        return GetClosest<T>(position, maxRange, GetOtherTeamColor(myTeam));
+    }
+
+    public static T GetWeakest<T>(Vector3 position, float maxRange, Color myTeam) where T : Actor
     {
         var enemies = Actors.OfType<T>().Where(b =>
             b.HealthSystem != null
             && !b.HealthSystem.IsDead()
-            && b.TeamColor != myTeam
+            && b.TeamColor == myTeam
             && Vector3.Distance(position, b.transform.position) <= maxRange
         ).ToList();
 
@@ -96,6 +102,11 @@ public static class GameManager
         }
 
         return weakest;
+    }
+
+    public static T GetWeakestEnemy<T>(Vector3 position, float maxRange, Color myTeam) where T : Actor
+    {
+        return GetWeakest<T>(position, maxRange, GetOtherTeamColor(myTeam));
     }
 
     public static void RegisterRobotCreated(Color team, int amount = 1)

@@ -19,45 +19,64 @@ public class Robot : Actor
     public Animator Animator { get; set; }
     public RandomoveOnGrid RandoMove { get; set; }
 
+    public AudioSource AudioAttack { get; set; }
+    public AudioSource AudioHeal { get; set; }
+    public AudioSource AudioDie { get; set; }
+    public AudioSource AudioWalk { get; set; }
+    public AudioSource AudioDestroy { get; set; }
+
     private float InvincibleUntil { get; set; }
     private float DelaySinceLastCollision { get; set; }
 
-    // Start is called before the first frame update
-    protected override void Start()
+    protected override void Awake()
     {
-        base.Start();
-
+        base.Awake();
         this.SpriteRenderer = this.GetComponentInChildren<SpriteRenderer>();
         this.Rigidbody = this.GetComponentInChildren<Rigidbody2D>();
         this.RandoMove = this.GetComponent<RandomoveOnGrid>();
         this.Animator = this.GetComponentInChildren<Animator>();
         this.Animator.Play("Walk");
 
+        var audio = transform.Find("Audio");
+        this.AudioAttack = audio.Find("Attack").GetComponent<AudioSource>();
+        this.AudioHeal = audio.Find("Heal").GetComponent<AudioSource>();
+        this.AudioDie = audio.Find("Die").GetComponent<AudioSource>();
+        this.AudioWalk = audio.Find("Walk").GetComponent<AudioSource>();
+        this.AudioDestroy = audio.Find("Destroy").GetComponent<AudioSource>();
+    }
+
+    // Start is called before the first frame update
+    protected override void Start()
+    {
+        base.Start();
         this.HealthSystem.OnDead += this.HealthSystem_OnDead;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.TryGetComponent<Robot>(out Robot robot))
+        // Manage collision with actors only
+        Actor actor;
+        if (!collision.TryGetComponent<Actor>(out actor))
         {
-            if (robot.TeamColor == this.TeamColor)
+            return;
+        }
+
+        // Attack ennemy
+        if(this.TeamColor != actor.TeamColor)
+        {
+            this.AudioAttack.Play();
+            this.Animator.Play("Attack");
+            actor.Damage(this.Power, transform.position);
+
+            if(actor is Building && actor.HealthSystem.IsDead())
             {
-                // Heal friends
-                robot.Heal(this.Power);
-            }
-            else
-            {
-                // Attack ennemies
-                this.Animator.Play("Attack");
-                robot.Damage(this.Power, transform.position);
+                this.AudioDestroy.Play();
             }
         }
-        else if (collision.TryGetComponent<SpriteRenderer>(out SpriteRenderer spriteRenderer) && spriteRenderer.color != this.TeamColor && collision.TryGetComponent<HealthSystemComponent>(out HealthSystemComponent healthSystemComponent))
+        else if (actor is Robot)
         {
-            // Attack
-            this.Animator.Play("Attack");
-            healthSystemComponent.HealthSystem.Damage(this.Power);
-            //this.DamageParticleSystem.Play();
+            // Heal friend robots
+            actor.Heal(this.Power);
         }
 
         this.DelaySinceLastCollision = 0;
@@ -73,16 +92,17 @@ public class Robot : Actor
         }
     }
 
-    public void Heal(int amount)
+    public override void Heal(int amount)
     {
         if (this.HealthSystem.IsDamaged())
         {
+            this.AudioHeal.Play();
             this.HealthSystem.Heal(amount);
             this.HealParticleSystem.Play();
         }
     }
 
-    public void Damage(int amount, Vector3 sourcePosition)
+    public override void Damage(int amount, Vector3 sourcePosition)
     {
         // Nothing to do if invincible
         if(this.InvincibleUntil > Time.time)
@@ -111,6 +131,8 @@ public class Robot : Actor
 
     private void HealthSystem_OnDead(object sender, EventArgs e)
     {
+        this.AudioDie.Play();
+        this.AudioWalk.Stop();
         this.Rigidbody.simulated = false;
         this.SpriteRenderer.sortingOrder = -1;
         this.RandoMove.Disable();

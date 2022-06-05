@@ -21,6 +21,19 @@ public abstract class Actor : MonoBehaviour
         this.TeamColor = this.GetComponentInChildren<SpriteRenderer>().color;
     }
 
+    public virtual void Heal(int amount)
+    {
+        if (this.HealthSystem.IsDamaged())
+        {
+            this.HealthSystem.Heal(amount);
+        }
+    }
+
+    public virtual void Damage(int amount, Vector3 sourcePosition)
+    {
+        this.HealthSystem.Damage(amount);
+    }
+
     protected virtual void OnDestroy()
     {
         GameManager.Actors.Remove(this);

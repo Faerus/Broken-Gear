@@ -7,15 +7,20 @@ public class StartGameButton : MonoBehaviour
 {
     private void Awake()
     {
-        this.GetComponent<Button>().onClick.AddListener(this.StartGame);
+        this.GetComponent<Button>().onClick.AddListener(this.StartGameIn3);
     }
 
     private void Update()
     {
         if(Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
         {
-            this.StartGame();
+            this.StartGameIn3();
         }
+    }
+
+    private void StartGameIn3()
+    {
+        this.Invoke("StartGame", 2);
     }
 
     private void StartGame()

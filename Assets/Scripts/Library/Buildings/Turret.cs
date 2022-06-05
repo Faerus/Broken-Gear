@@ -31,6 +31,8 @@ public class Turret : Building
     [field: SerializeField]
     private GameObject Arrow { get; set; }
 
+    public AudioSource AudioShot { get; set; }
+
     // Start is called before the first frame update
     protected override void Awake()
     {
@@ -43,6 +45,7 @@ public class Turret : Building
         this.ShootPosition = transform.Find("ShootPosition").position;
         this.SpriteRenderer = this.GetComponentInChildren<SpriteRenderer>();
         this.Collider = this.GetComponent<BoxCollider2D>();
+        this.AudioShot = this.GetComponentInChildren<AudioSource>();
     }
     protected override void Start()
     {
@@ -69,6 +72,7 @@ public class Turret : Building
                 arrow.Speed = this.ArrowSpeed;
 
                 this.SpriteRenderer.flipX = this.ShootPosition.x < enemy.transform.position.x;
+                this.AudioShot.Play();
             }
         }
     }
