@@ -20,7 +20,7 @@ public class StartGameButton : MonoBehaviour
 
     private void StartGameIn3()
     {
-        this.Invoke("StartGame", 2);
+        this.Invoke("StartGame", .2f);
     }
 
     private void StartGame()

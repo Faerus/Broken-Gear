@@ -112,16 +112,20 @@ public class Robot : Actor
 
         this.HealthSystem.Damage(amount);
         this.DamageParticleSystem.Play();
+        this.KnockBack(sourcePosition);
 
-        // Knockback
-        Vector3 moveDir = (transform.position - sourcePosition).normalized;
-        transform.position += moveDir * .3f;
-
-        //DamagePopup.Create(transform.position, amount);
-        if(UnityEngine.Random.Range(0, 2) < 1)
-            this.RandoMove.TurnBack();
+        if(UnityEngine.Random.Range(0, 3) < 1)
+        {
+            this.RandoMove.Flee(sourcePosition);
+        }
 
         this.InvincibleUntil = Time.time + .2f;
+    }
+
+    public void KnockBack(Vector3 sourcePosition, float power = .3f)
+    {
+        Vector3 moveDir = (transform.position - sourcePosition).normalized;
+        transform.position += moveDir * power;
     }
 
     public bool IsDead()

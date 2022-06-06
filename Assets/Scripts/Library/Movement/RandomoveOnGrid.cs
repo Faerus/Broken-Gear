@@ -123,16 +123,32 @@ public class RandomoveOnGrid : MonoBehaviour
         }
     }
 
-    public void TurnBack()
+    public void Flee(Vector3 sourcePosition)
     {
         if (!this.enabled)
             return;
 
-        //this.MoveToDirection(this.Direction * -1);
-        Cell previousOrigin = this.Cell;
-        this.Cell = this.TargetCell;
-        this.Direction *= -1; // make sure to recomplute flipX
-        this.MoveTo(previousOrigin);
+        Vector3 moveDir = (transform.position - sourcePosition).normalized;
+        float absX = Mathf.Abs(moveDir.x);
+        float absY = Mathf.Abs(moveDir.y);
+        int directionX = 0, directionY = 0;
+        if (absX > absY)
+        {
+            directionX = (int)(moveDir.x / absX);
+        }
+        else
+        {
+            directionY = (int)(moveDir.y / absY);
+        }
+
+        try
+        {
+            this.MoveToDirection(new Vector2(directionX, directionY));
+        }
+        catch (IndexOutOfRangeException)
+        {
+            // Not possible to flee, robot is on border side
+        }
     }
 
     public void Disable()
