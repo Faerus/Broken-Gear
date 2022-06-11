@@ -2,7 +2,6 @@
 Ce jeu vous est proposé par Cricri, 7 ans. Il a été développé à partir d'un dessin unique et de ses instructions, pas toujours suivies à la lettre car son imagination est débordante ^^
 
 Vous pouvez le tester ici: https://tyalis.itch.io/broken-gears
-ou ici: https://play.unity.com/mg/other/webgl-builds-207101
 
 Activez le son !
 
